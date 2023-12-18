@@ -2,5 +2,5 @@ __pycache__/
 radarr_discarder.js
 apikey.txt
 tankar.txt
-downloading_movies.json
+currently_downloading_movies.json
 test.py
