@@ -16,9 +16,10 @@ MAX_ALLOWED_DOWNLOAD_TIME = datetime.timedelta(hours=2)
 MAX_CATCHUP_TIME = datetime.timedelta(minutes=5)
 
 # Generate a url that queries the radarr api for movies currently downloading.
-with open("apikey.txt") as f:
-    RADARR_API_KEY = f.readlines()[0]
-RADARR_URL = "http://<url of radarr server>:<radarr port>"
+with open("info.txt") as f:
+    lines = f.readlines()
+    RADARR_API_KEY = lines[0].strip() # includes \n without strip()
+    RADARR_URL = lines[1].strip()
 base_url = RADARR_URL + "/api/v3/queue"
 query_arguments = "?includeUnknownMovieItems=true&includeMovie=true"
 api_key_argument = f"&apikey={RADARR_API_KEY}"
