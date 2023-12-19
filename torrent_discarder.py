@@ -113,4 +113,9 @@ for radarr_download in radarr_downloads:
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
 
-#TODO: remove old download_id:s that are not being used.
+# Delete monitored download_id:s that are not being downloaded. 
+radarr_download_ids = [download["id"] for download in radarr_downloads]
+for download_id in monitored_downloads:
+    if download_id not in radarr_download_ids:
+        remove_from_script_record(monitored_downloads_path,download_id)
+        
