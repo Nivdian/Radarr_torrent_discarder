@@ -18,7 +18,7 @@ MAX_CATCHUP_TIME = datetime.timedelta(minutes=5)
 # Generate a url that queries the radarr api for movies currently downloading.
 with open("apikey.txt") as f:
     RADARR_API_KEY = f.readlines()[0]
-RADARR_URL = "http://192.168.1.152:7878"
+RADARR_URL = "http://<url of radarr server>:<radarr port>"
 base_url = RADARR_URL + "/api/v3/queue"
 query_arguments = "?includeUnknownMovieItems=true&includeMovie=true"
 api_key_argument = f"&apikey={RADARR_API_KEY}"
@@ -112,6 +112,7 @@ for radarr_download in radarr_downloads:
 
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
+
 
 # Delete monitored download_id:s that are not being downloaded. 
 radarr_download_ids = [download["id"] for download in radarr_downloads]
