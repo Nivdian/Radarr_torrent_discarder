@@ -1,0 +1,7 @@
+.gitignore
+__pycache__/
+radarr_discarder.js
+apikey.txt
+tankar.txt
+currently_downloading_movies.json
+test.py

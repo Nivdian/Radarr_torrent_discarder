@@ -113,3 +113,5 @@ for movie in movies:
 
         add_to_script_record(currently_downloading_movies_path,
                              download_id, current_time)
+
+#TODO: remove old download_id:s that are not being used.
