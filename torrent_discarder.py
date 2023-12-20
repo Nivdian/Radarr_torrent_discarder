@@ -3,6 +3,8 @@
 # (see https://www.reddit.com/r/radarr/comments/101q31k/i_wrote_a_script_that_replaces_slowdead_torrents/)
 #TODO: add check for if time left stays at 00:00 (means that torrent is dead.)
 
+import os
+import shutil
 import json
 import datetime
 import requests
@@ -16,12 +18,20 @@ MAX_ALLOWED_DOWNLOAD_TIME = datetime.timedelta(hours=2)
 # Time allowed for a movie to catch up to the allowed download time
 MAX_CATCHUP_TIME = datetime.timedelta(minutes=5)
 REQUEST_TIMEOUT = 5 # Seconds
+DELETE_LOCAL_DOWNLOADS = False
 
-# Generate a url that queries the radarr api for movies currently downloading.
+# Load data from info.txt
 with open("info.txt") as f:
     lines = f.readlines()
     RADARR_API_KEY = lines[0].strip() # includes \n without strip()
     RADARR_URL = lines[1].strip()
+    # The argument for local download path is optional
+    if len(lines) >= 3:
+        LOCAL_DOWNLOAD_PATH = lines[2].strip
+    else:
+        LOCAL_DOWNLOAD_PATH = None
+
+# Generate a url that queries the radarr api for movies currently downloading.
 base_url = RADARR_URL + "/api/v3/queue"
 query_arguments = "?includeUnknownMovieItems=true&includeMovie=true"
 api_key_argument = f"&apikey={RADARR_API_KEY}"
@@ -130,9 +140,22 @@ for radarr_download in radarr_reported_downloads:
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
 
-# Delete monitored download_id:s that are inactive
+# Go through the save file and check for movies that ae monitored but not
+# in the Radarr que. Wait for wait_time_before_deletion and then delete the
+# movie.
+wait_time_before_deletion = datetime.timedelta(minutes=30)
 radarr_download_ids = [download["id"] for download in radarr_reported_downloads]
 for monitored_download_id in monitored_downloads:
     if monitored_download_id not in radarr_download_ids:
-        remove_from_script_record(monitored_downloads_path,monitored_download_id)
-        #TODO: Remove from deluge?
+        remove_from_script_record(monitored_downloads_path,
+                                  monitored_download_id)
+
+# If there are no current downloads, then delete all local downloads of movies
+# if a local download path is given.
+if len(radarr_download_ids) == 0 and DELETE_LOCAL_DOWNLOADS:
+    if LOCAL_DOWNLOAD_PATH is not None:
+        # Check for files in the local download path
+        # 100 is a safeguard against deleting lots of files, if
+        # LOCAL_DOWNLOAD_PATH is set to an incorrect path by mistake.
+        if 1 <= len(os.listdir(LOCAL_DOWNLOAD_PATH)) <= 100:
+            shutil.rmtree(LOCAL_DOWNLOAD_PATH)
