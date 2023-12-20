@@ -109,7 +109,6 @@ for radarr_download in radarr_reported_downloads:
         # A valueerror here likley means that Radarr has sent an invalid
         # Time, which it sometimes does when a download is stalled.
         # We treat this like the torrent is stalled.
-        print("hi")
         radarr_reports_invalid_download_time = True
 
     # Convert download_time_left to a timedelta:
