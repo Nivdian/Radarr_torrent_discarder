@@ -1,6 +1,7 @@
 # A script that removes torrents which are dead or very slow from radarr.
 # This script is heavily inspired by a javascript program by u/Douglas96
 # (see https://www.reddit.com/r/radarr/comments/101q31k/i_wrote_a_script_that_replaces_slowdead_torrents/)
+#TODO: add check for if time left stays at 00:00 (means that torrent is dead.)
 
 import json
 import datetime
@@ -14,6 +15,7 @@ default_date_format = r"%Y-%m-%d %H:%M:%S.%f"
 MAX_ALLOWED_DOWNLOAD_TIME = datetime.timedelta(hours=2)
 # Time allowed for a movie to catch up to the allowed download time
 MAX_CATCHUP_TIME = datetime.timedelta(minutes=5)
+REQUEST_TIMEOUT = 5 # Seconds
 
 # Generate a url that queries the radarr api for movies currently downloading.
 with open("info.txt") as f:
@@ -29,7 +31,7 @@ def delete_from_radarr_downloads(download_id):
     """Delete movie and blacklist from radarr based on movie_id."""
     deletion_url = (f"{base_url}/{download_id}?removeFromClient=true"
                     + f"&blocklist=true{api_key_argument}")
-    requests.delete(deletion_url)
+    requests.delete(deletion_url,timeout=REQUEST_TIMEOUT)
 
 def remove_from_script_record(script_record_path, download_id):
     """Remove movie from local save file based on download_id"""
@@ -68,7 +70,7 @@ except FileNotFoundError:
     monitored_downloads = {}
 
 # Get the currently downloading movies from radarr.
-api_answer = requests.get(api_query_url).json()
+api_answer = requests.get(api_query_url,timeout=REQUEST_TIMEOUT).json()
 # The list of current downloading movies is called "records"
 radarr_downloads = api_answer["records"] #TODO: check that api_answer["pages"] < 1
 
@@ -114,7 +116,7 @@ for radarr_download in radarr_downloads:
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
 
-# Delete monitored download_id:s that are not being downloaded. 
+# Delete monitored download_id:s that are inactive
 radarr_download_ids = [download["id"] for download in radarr_downloads]
 for download_id in monitored_downloads:
     if download_id not in radarr_download_ids:
