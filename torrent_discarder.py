@@ -43,7 +43,7 @@ def remove_from_script_record(script_record_path, download_id):
 
 def add_to_script_record(script_record_path,
         download_id, time_monitored):
-    """Add download_id:time_monitored to script_record_path."""
+    """Add download_id:time_last_ok to script_record_path."""
     with open(script_record_path,"r+",encoding="utf-8") as f:
         try:
             monitored_downloads = json.load(f)
@@ -94,6 +94,7 @@ for radarr_download in radarr_reported_downloads:
         download_time_left = datetime.timedelta(hours=download_time_left.hour,
                                                 minutes=download_time_left.minute,
                                                 seconds=download_time_left.second)
+        radarr_reports_invalid_download_time = False
     except ValueError:
         # A valueerror here likley means that Radarr has sent an invalid
         # Time, which it sometimes does when a download is stalled.
