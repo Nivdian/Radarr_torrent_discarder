@@ -72,10 +72,10 @@ except FileNotFoundError:
 # Get the currently downloading movies from radarr.
 api_answer = requests.get(api_query_url,timeout=REQUEST_TIMEOUT).json()
 # The list of current downloading movies is called "records"
-radarr_downloads = api_answer["records"] #TODO: check that api_answer["pages"] < 1
+radarr_reported_downloads = api_answer["records"] #TODO: check that api_answer["pages"] < 1
 
 # Loop over movies and check for slow downloads
-for radarr_download in radarr_downloads:
+for radarr_download in radarr_reported_downloads:
     radarr_download_id = str(radarr_download['id']) # json saves everything as strings.
     # json dump saves everything as strings
     if str(radarr_download_id) not in monitored_downloads.keys():
@@ -85,17 +85,28 @@ for radarr_download in radarr_downloads:
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
         continue
+    # Fetch the download time left from the radarr api. For some reason,
+    # Radarr does not always report a positive time left, which has to be
+    # accounted for by try-except.
+    try:
+        download_time_left = datetime.datetime.strptime(radarr_download["timeleft"],
+                                                        time_left_format)
+        download_time_left = datetime.timedelta(hours=download_time_left.hour,
+                                                minutes=download_time_left.minute,
+                                                seconds=download_time_left.second)
+    except ValueError:
+        # A valueerror here likley means that Radarr has sent an invalid
+        # Time, which it sometimes does when a download is stalled.
+        # We treat this like the torrent is stalled.
+        print("hi")
+        radarr_reports_invalid_download_time = True
 
-    download_time_left = datetime.datetime.strptime(radarr_download["timeleft"],
-                                                    time_left_format)
     # Convert download_time_left to a timedelta:
-    download_time_left = datetime.timedelta(hours=download_time_left.hour,
-                                            minutes=download_time_left.minute,
-                                            seconds=download_time_left.second)
     if (download_time_left > MAX_ALLOWED_DOWNLOAD_TIME
-        or download_time_left == datetime.datetime.timedelta(seconds=0)):
+        or download_time_left == datetime.timedelta(seconds=0)
+        or radarr_reports_invalid_download_time):
         # If download time left is 0 that means the download has stalled.
-        # Load datetime object from saved string
+        # Create datetime object from saved string
         time_last_monitored = datetime.datetime.strptime(
             monitored_downloads[radarr_download_id],
             default_date_format)
@@ -110,18 +121,17 @@ for radarr_download in radarr_downloads:
         else:
             # The download is slow but it has time left to catch up.
             continue 
-
     else:
         # If the download suddenly slows down it should have MAX_CATCHUP_TIME 
-        # to catch up, so we update the time 
-        # Convert current time to string to save with json.dump
+        # to catch up, so we update the last_monitored_time to match the
+        # current time.
         current_time = datetime.datetime.now().strftime(default_date_format)
-
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
 
 # Delete monitored download_id:s that are inactive
-radarr_download_ids = [download["id"] for download in radarr_downloads]
-for download_id in monitored_downloads:
-    if download_id not in radarr_download_ids:
-        remove_from_script_record(monitored_downloads_path,download_id)
+radarr_download_ids = [download["id"] for download in radarr_reported_downloads]
+for monitored_download_id in monitored_downloads:
+    if monitored_download_id not in radarr_download_ids:
+        remove_from_script_record(monitored_downloads_path,monitored_download_id)
+        #TODO: Remove from deluge?
