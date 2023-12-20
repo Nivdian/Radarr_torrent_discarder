@@ -85,13 +85,16 @@ for radarr_download in radarr_downloads:
         add_to_script_record(monitored_downloads_path,
                              radarr_download_id, current_time)
         continue
+
     download_time_left = datetime.datetime.strptime(radarr_download["timeleft"],
                                                     time_left_format)
     # Convert download_time_left to a timedelta:
     download_time_left = datetime.timedelta(hours=download_time_left.hour,
                                             minutes=download_time_left.minute,
                                             seconds=download_time_left.second)
-    if (download_time_left > MAX_ALLOWED_DOWNLOAD_TIME):
+    if (download_time_left > MAX_ALLOWED_DOWNLOAD_TIME
+        or download_time_left == datetime.datetime.timedelta(seconds=0)):
+        # If download time left is 0 that means the download has stalled.
         # Load datetime object from saved string
         time_last_monitored = datetime.datetime.strptime(
             monitored_downloads[radarr_download_id],
@@ -107,6 +110,7 @@ for radarr_download in radarr_downloads:
         else:
             # The download is slow but it has time left to catch up.
             continue 
+
     else:
         # If the download suddenly slows down it should have MAX_CATCHUP_TIME 
         # to catch up, so we update the time 
