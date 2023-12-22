@@ -156,5 +156,9 @@ if len(radarr_download_ids) == 0 and DELETE_LOCAL_DOWNLOADS:
         # Check for files in the local download path
         # 100 is a safeguard against deleting lots of files, if
         # LOCAL_DOWNLOAD_PATH is set to an incorrect path by mistake.
-        if 1 <= len(os.listdir(LOCAL_DOWNLOAD_PATH)) <= 100:
-            shutil.rmtree(LOCAL_DOWNLOAD_PATH)
+        try:
+            if 1 <= len(os.listdir(LOCAL_DOWNLOAD_PATH)) <= 100:
+                shutil.rmtree(LOCAL_DOWNLOAD_PATH)
+        except FileNotFoundError:
+            # LOCAL_DOWNLOAD_PATH does not exist
+            pass
