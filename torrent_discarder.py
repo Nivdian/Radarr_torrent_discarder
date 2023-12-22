@@ -27,7 +27,7 @@ with open("info.txt") as f:
     RADARR_URL = lines[1].strip()
     # The argument for local download path is optional
     if len(lines) >= 3:
-        LOCAL_DOWNLOAD_PATH = lines[2].strip()
+        LOCAL_DOWNLOAD_PATH = lines[2]
     else:
         LOCAL_DOWNLOAD_PATH = None
 
