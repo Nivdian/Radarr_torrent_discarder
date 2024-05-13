@@ -21,7 +21,11 @@ def remove_from_local_record(local_record_path, download_id):
     """Remove movie/series from local save file based on download_id"""
     with open(local_record_path, "r", encoding="utf-8") as f:
         saved_items = json.load(f)
-    del saved_items[download_id]
+    try:
+        del saved_items[str(download_id)]
+    except KeyError:
+        print(f"keyerror for {download_id}.")
+        print(f"saved_items: {saved_items}")
     with open(local_record_path, "w", encoding="utf-8") as f:
         json.dump(
             saved_items,
@@ -127,11 +131,10 @@ def delete_slow_downloads(
                 monitored_downloads[download_id], default_date_format
             )
             time_since_download_slowed = datetime.datetime.now() - time_last_monitored
-            print(time_since_download_slowed)
             if time_since_download_slowed > max_allowed_catchup_time:
                 # The movie has not caught up with max allowed time in five minutes
                 # and is to be discarded
-                print("deleting download")
+                print(f"deleting download {download_id}")
                 delete_from_downloads(download_id, api_base_url, api_key)
                 remove_from_local_record(local_record_path, download_id)
             else:
