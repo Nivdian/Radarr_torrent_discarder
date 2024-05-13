@@ -1,3 +1,4 @@
 creds.py
 currently_downloading_movies.json
+currently_downloading_series.json
 __pycache__/*
