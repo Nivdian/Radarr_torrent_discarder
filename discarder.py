@@ -73,6 +73,8 @@ def get_reported_download_queue(
 def delete_slow_downloads(
     reported_download_queue,
     local_record_path,
+    api_base_url,
+    api_key,
     time_left_format="%H:%M:%S",
     default_date_format=r"%Y-%m-%d %H:%M:%S.%f",
     max_allowed_catchup_time=datetime.timedelta(minutes=10),
@@ -125,10 +127,12 @@ def delete_slow_downloads(
                 monitored_downloads[download_id], default_date_format
             )
             time_since_download_slowed = datetime.datetime.now() - time_last_monitored
+            print(time_since_download_slowed)
             if time_since_download_slowed > max_allowed_catchup_time:
                 # The movie has not caught up with max allowed time in five minutes
                 # and is to be discarded
-                delete_from_downloads(download_id)
+                print("deleting download")
+                delete_from_downloads(download_id, api_base_url, api_key)
                 remove_from_local_record(local_record_path, download_id)
             else:
                 # The download is slow but it has time left to catch up.
@@ -164,7 +168,12 @@ if __name__ == "__main__":
     reported_download_queue = get_reported_download_queue(
         api_base_url, creds.radarr_api_key, radarr=True
     )
-    delete_slow_downloads(reported_download_queue, local_record_path)
+    delete_slow_downloads(
+        reported_download_queue,
+        local_record_path,
+        api_base_url,
+        api_key=creds.radarr_api_key,
+    )
     delete_removed_monitored_movies(reported_download_queue, local_record_path)
 
     # sonarr
@@ -173,5 +182,10 @@ if __name__ == "__main__":
     reported_download_queue = get_reported_download_queue(
         api_base_url, creds.sonarr_api_key, radarr=False
     )
-    delete_slow_downloads(reported_download_queue, local_record_path)
+    delete_slow_downloads(
+        reported_download_queue,
+        local_record_path,
+        api_base_url,
+        api_key=creds.sonarr_api_key,
+    )
     delete_removed_monitored_movies(reported_download_queue, local_record_path)
