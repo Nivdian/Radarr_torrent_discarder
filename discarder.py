@@ -134,7 +134,6 @@ def delete_slow_downloads(
             if time_since_download_slowed > max_allowed_catchup_time:
                 # The movie has not caught up with max allowed time in five minutes
                 # and is to be discarded
-                print(f"deleting download {download_id}")
                 delete_from_downloads(download_id, api_base_url, api_key)
                 remove_from_local_record(local_record_path, download_id)
             else:
