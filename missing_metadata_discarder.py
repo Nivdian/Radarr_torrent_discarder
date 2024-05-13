@@ -26,7 +26,6 @@ def get_torrent_id_from_hash(
     else:
         api_history_query_url = f"{api_base_url}?pageSize=100&includeSeries=true&includeEpisode=true&apikey={api_key}"
 
-    print(api_history_query_url)
     history = requests.get(api_history_query_url, timeout=request_timeout).json()
     for item in history["records"]:
         if item["downloadId"].lower() == torrent_hash.lower():
