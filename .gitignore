@@ -1,4 +1,5 @@
 creds.py
 currently_downloading_movies.json
 currently_downloading_series.json
+torrents_without_metadata.json
 __pycache__/*

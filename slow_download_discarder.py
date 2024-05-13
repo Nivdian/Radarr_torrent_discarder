@@ -1,7 +1,5 @@
 # A script that removes torrents which are dead or very slow from sonarr
 # TODO: remove downloads that get stuck on "retrieving metadata"
-import os
-import shutil
 import json
 import datetime
 import requests
