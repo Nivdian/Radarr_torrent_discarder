@@ -40,6 +40,11 @@ def mark_torrent_as_failed_from_id(
     requests.post(api_history_failed_post_url, timeout=request_timeout)
 
 
+def add_torrent_to_blocklist(torrent_id, api_base_url, api_key, request_timeout=5):
+    api_blocklist_url = f"{api_base_url}/blocklist/{torrent_id}?apikey={api_key}"
+    requests.delete(api_blocklist_url, timeout=request_timeout)
+
+
 def mark_torrent_as_failed_from_hash(torrent_hash, radarr, api_base_url, api_key):
     torrent_id = get_torrent_id_from_hash(
         torrent_hash=torrent_hash,
@@ -50,6 +55,7 @@ def mark_torrent_as_failed_from_hash(torrent_hash, radarr, api_base_url, api_key
     mark_torrent_as_failed_from_id(
         torrent_id, api_base_url=api_base_url, api_key=api_key
     )
+    add_torrent_to_blocklist(torrent_id, api_base_url, api_key)
 
     # TODO radera från transmission också!
 
